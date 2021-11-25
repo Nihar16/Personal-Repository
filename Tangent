@@ -1,0 +1,16 @@
+import numpy as np 
+import matplotlib.pyplot as plt 
+  
+in_array = np.linspace(0, np.pi, 12) 
+out_array = np.tan(in_array) 
+  
+print("in_array : ", in_array) 
+print("\nout_array : ", out_array) 
+  
+
+plt.plot(in_array, out_array, color = 'red', marker = "o") 
+plt.title("numpy.tan()") 
+plt.xlabel("X") 
+plt.ylabel("Y") 
+plt.grid(color='green',lw=1,ls='-',alpha=0.4)
+plt.show()

@@ -1,0 +1,17 @@
+import matplotlib.pyplot as plt
+import numpy as np
+x=np.linspace(-2*np.pi,2*np.pi,50)
+plt.figure(figsize=(12,9))
+plt.rcParams['font.size']=18
+plt.rcParams['font.family']='consolas'
+plt.title('Trigonometry')
+plt.plot(x,np.sin(x),'r-.',label='sine Wave',lw=2)
+plt.plot(x,np.cos(x),'b-.',label='Cosine Wave',lw=2)
+plt.xlabel('Angle in rad')
+plt.ylabel('Sine\Cosine Functions')
+plt.text(0,1,'Maxima')
+plt.axis([-7,7,-2,2])
+plt.annotate('zero',(0,0))
+plt.legend()
+plt.grid(color='red',lw=1,ls='-',alpha=0.4)
+plt.show()

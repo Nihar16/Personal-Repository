@@ -123,5 +123,3 @@ public static void main(String[] args)
 	multiplyMatrix(row1, col1, A, row2, col2, B);
 }
 }
-
-// This code is contributed by Dharanendra L V.

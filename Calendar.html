@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Monthly Calendar Template</title>
+<style>
+  :root {
+    --bg-page: #f0f0f0;
+    --bg-card: #ffffff;
+    --border-card: #e0e0e0;
+    --shadow: rgba(0,0,0,0.08);
+    --text-label: #8a8a8a;
+    --text-main: #333333;
+    --text-date: #555555;
+    --border-cell: #e3e3e3;
+    --bg-empty: #fafafa;
+    --border-head: #d8d8d8;
+    --week-text: #b5b5b5;
+    --control-border: #c9c9c9;
+  }
+
+  [data-theme="dark"] {
+    --bg-page: #1b1c1f;
+    --bg-card: #26282c;
+    --border-card: #3a3c40;
+    --shadow: rgba(0,0,0,0.4);
+    --text-label: #9a9da3;
+    --text-main: #f0f0f0;
+    --text-date: #e0e0e0;
+    --border-cell: #3a3c40;
+    --bg-empty: #1f2023;
+    --border-head: #45474c;
+    --week-text: #6e7177;
+    --control-border: #4a4c50;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: var(--bg-page);
+    margin: 0;
+    padding: 24px;
+    display: flex;
+    justify-content: center;
+    transition: background 0.2s ease;
+    text-transform: uppercase;
+  }
+  .calendar-card {
+    background: var(--bg-card);
+    border-radius: 16px;
+    border: 1px solid var(--border-card);
+    box-shadow: 0 4px 20px var(--shadow);
+    padding: 28px 32px;
+    width: 100%;
+    max-width: 900px;
+    transition: background 0.2s ease, border-color 0.2s ease;
+  }
+  .controls-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+    gap: 24px;
+  }
+  .picker-line {
+    border-bottom: 1px solid var(--control-border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 4px;
+  }
+  .field-label {
+    font-size: 14px;
+    letter-spacing: 1px;
+    color: var(--text-label);
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+  select, input[type="number"] {
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-main);
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    text-align: center;
+  }
+  select:focus, input[type="number"]:focus {
+    outline: none;
+  }
+  input[type="number"] {
+    width: 80px;
+  }
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .toolbar select {
+    border: 1px solid var(--control-border);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  /* Native dropdown popup always has a light background,
+     so force readable text colors for its options regardless of theme */
+  select option, select optgroup {
+    color: #333333;
+    background: #ffffff;
+  }
+  .icon-btn {
+    border: 1px solid var(--control-border);
+    background: transparent;
+    color: var(--text-main);
+    border-radius: 8px;
+    padding: 7px 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+  }
+  .icon-btn:hover {
+    border-color: var(--text-main);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  th {
+    text-align: center;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    color: var(--text-label);
+    font-weight: 600;
+    padding: 8px 10px;
+    border-bottom: 2px solid var(--border-head);
+    text-transform: uppercase;
+  }
+  th.week-col, td.week-col {
+    text-align: center;
+    width: 6%;
+    color: var(--week-text);
+    font-weight: 600;
+  }
+  table.hide-weeks th.week-col,
+  table.hide-weeks td.week-col {
+    display: none;
+  }
+  td {
+    border: 1px solid var(--border-cell);
+    height: 90px;
+    width: 13.4%;
+    vertical-align: top;
+    padding: 8px 10px;
+  }
+  td.empty {
+    background: var(--bg-empty);
+  }
+  td.week-col {
+    background: var(--bg-empty);
+    border: 1px solid var(--border-cell);
+    vertical-align: middle;
+    font-size: 13px;
+  }
+  .date-number {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-date);
+  }
+  .table-wrap {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  /* Tablet */
+  @media (max-width: 900px) {
+    body { padding: 16px; }
+    .calendar-card { padding: 20px; }
+    .controls-row { gap: 14px; }
+    td { height: 70px; padding: 6px 8px; }
+    th { padding: 6px 6px; font-size: 11px; }
+  }
+
+  /* Mobile */
+  @media (max-width: 600px) {
+    body { padding: 8px; }
+    .calendar-card { padding: 12px; border-radius: 12px; }
+    .controls-row {
+      gap: 10px;
+      margin-bottom: 14px;
+      justify-content: space-between;
+    }
+    .picker-line { gap: 6px; }
+    .field-label { font-size: 11px; }
+    .picker-line select { font-size: 14px; }
+    input[type="number"] { font-size: 14px; width: 60px; }
+    .toolbar {
+      width: 100%;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+    }
+    .toolbar select, .icon-btn {
+      font-size: 12px;
+      padding: 6px 8px;
+    }
+    #paperSize { max-width: 40%; }
+    table { min-width: 600px; }
+    th { font-size: 10px; padding: 6px 4px; }
+    th.week-col { font-size: 10px; }
+    td { height: 56px; padding: 4px 6px; }
+    .date-number { font-size: 12px; }
+  }
+
+  /* Very small phones */
+  @media (max-width: 380px) {
+    .field-label { display: none; }
+    table { min-width: 540px; }
+    td { height: 48px; }
+  }
+
+  @media print {
+    body { padding: 0; background: #fff !important; }
+    .calendar-card { box-shadow: none; border: none; background: #fff !important; }
+    .toolbar { display: none !important; }
+    select, input[type="number"] { -webkit-appearance: none; appearance: none; }
+    [data-theme="dark"] {
+      --bg-page: #ffffff;
+      --bg-card: #ffffff;
+      --border-card: #e0e0e0;
+      --shadow: rgba(0,0,0,0);
+      --text-label: #8a8a8a;
+      --text-main: #333333;
+      --text-date: #555555;
+      --border-cell: #e3e3e3;
+      --bg-empty: #fafafa;
+      --border-head: #d8d8d8;
+      --week-text: #b5b5b5;
+      --control-border: #c9c9c9;
+    }
+  }
+
+  @page { size: auto; margin: 14mm; }
+</style>
+</head>
+<body>
+  <div class="calendar-card">
+    <div class="controls-row">
+      <div class="picker-line">
+        <span class="field-label">Month</span>
+        <select id="monthSelect"></select>
+      </div>
+      <div class="picker-line">
+        <span class="field-label">Year</span>
+        <input type="number" id="yearInput" min="1900" max="2100">
+      </div>
+      <div class="toolbar">
+        <select id="paperSize"></select>
+        <select id="orientation">
+          <option value="portrait" selected>Portrait</option>
+          <option value="landscape">Landscape</option>
+        </select>
+        <label class="icon-btn" style="cursor:pointer;">
+          <input type="checkbox" id="showWeeks" checked style="margin:0;">
+          Week numbers
+        </label>
+        <button class="icon-btn" id="printBtn">Print</button>
+        <button class="icon-btn" id="themeBtn">Dark mode</button>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th class="week-col">Week</th>
+          <th>Monday</th>
+          <th>Tuesday</th>
+          <th>Wednesday</th>
+          <th>Thursday</th>
+          <th>Friday</th>
+          <th>Saturday</th>
+          <th>Sunday</th>
+        </tr>
+      </thead>
+      <tbody id="calendarBody"></tbody>
+    </table>
+    </div>
+  </div>
+
+  <style id="pageSizeStyle"></style>
+
+<script>
+  const monthSelect = document.getElementById('monthSelect');
+  const yearInput = document.getElementById('yearInput');
+  const calendarBody = document.getElementById('calendarBody');
+  const paperSize = document.getElementById('paperSize');
+  const orientation = document.getElementById('orientation');
+  const showWeeks = document.getElementById('showWeeks');
+  const printBtn = document.getElementById('printBtn');
+  const themeBtn = document.getElementById('themeBtn');
+  const pageSizeStyle = document.getElementById('pageSizeStyle');
+
+  const monthNames = [
+    'JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE',
+    'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'
+  ];
+
+  // Populate month dropdown
+  monthNames.forEach((name, idx) => {
+    const opt = document.createElement('option');
+    opt.value = idx;
+    opt.textContent = name;
+    monthSelect.appendChild(opt);
+  });
+
+  // ISO 8601 week number for a given Date
+  function getISOWeek(date) {
+    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    const dayNum = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+  }
+
+  function renderCalendar() {
+    const month = parseInt(monthSelect.value);
+    const year = parseInt(yearInput.value);
+
+    if (isNaN(year) || year < 1900 || year > 2100) return;
+
+    const jsFirstDay = new Date(year, month, 1).getDay(); // 0 = Sunday ... 6 = Saturday
+    // Convert to ISO 8601 Monday-first index: Monday = 0 ... Sunday = 6
+    const firstDay = (jsFirstDay + 6) % 7;
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    const cells = [];
+    for (let i = 0; i < firstDay; i++) cells.push(null);
+    for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+    while (cells.length % 7 !== 0) cells.push(null);
+
+    calendarBody.innerHTML = '';
+    for (let row = 0; row < cells.length; row += 7) {
+      const tr = document.createElement('tr');
+
+      // Each row starts on Monday, so the ISO week number is unambiguous
+      const offsetFromFirst = row - firstDay;
+      const rowMonday = new Date(year, month, 1 + offsetFromFirst);
+      const weekTd = document.createElement('td');
+      weekTd.className = 'week-col';
+      weekTd.textContent = getISOWeek(rowMonday);
+      tr.appendChild(weekTd);
+
+      for (let col = row; col < row + 7; col++) {
+        const td = document.createElement('td');
+        const val = cells[col];
+        if (val === null) {
+          td.classList.add('empty');
+        } else {
+          const num = document.createElement('div');
+          num.className = 'date-number';
+          num.textContent = val;
+          td.appendChild(num);
+        }
+        tr.appendChild(td);
+      }
+      calendarBody.appendChild(tr);
+    }
+  }
+
+  // Comprehensive paper size list: name -> [width, height, unit]
+  const paperSizeGroups = {
+    'Standard': {
+      'Letter': [8.5, 11, 'in'],
+      'Tabloid': [11, 17, 'in'],
+      'Legal': [8.5, 14, 'in'],
+      'Statement': [5.5, 8.5, 'in'],
+      'Executive': [7.25, 10.5, 'in']
+    },
+    'ISO / A-Series': {
+      'A2': [420, 594, 'mm'],
+      'A3': [297, 420, 'mm'],
+      'A4': [210, 297, 'mm'],
+      'A5': [148, 210, 'mm'],
+      'A6': [105, 148, 'mm'],
+      'B4 (JIS)': [257, 364, 'mm'],
+      'B5 (JIS)': [182, 257, 'mm'],
+      'ISOA0': [841, 1189, 'mm'],
+      'ISOA1': [594, 841, 'mm']
+    },
+    'Envelopes': {
+      'Envelope #9': [3.875, 8.875, 'in'],
+      'Envelope #10': [4.125, 9.5, 'in'],
+      'Envelope DL': [110, 220, 'mm'],
+      'Envelope C5': [162, 229, 'mm'],
+      'Envelope C4': [229, 324, 'mm'],
+      'Envelope B5': [176, 250, 'mm'],
+      'Envelope Monarch': [3.875, 7.5, 'in'],
+      'Japanese Envelope Kaku #2': [240, 332, 'mm'],
+      'Japanese Envelope Kaku #3': [216, 277, 'mm'],
+      'Japanese Envelope Chou #3': [120, 235, 'mm'],
+      'Japanese Envelope Chou #4': [90, 205, 'mm'],
+      'Japan Envelope You #4': [105, 235, 'mm'],
+      'Japan You 6 Envelope': [98, 190, 'mm'],
+      'Japan Chou 40 Envelope': [90, 225, 'mm'],
+      'Japan Kaku 4 Envelope': [197, 267, 'mm'],
+      'Japan Kaku 5 Envelope': [190, 240, 'mm'],
+      'Japan Kaku 8 Envelope': [119, 197, 'mm']
+    },
+    'Sheet / Architecture / Engineering': {
+      'C size sheet': [17, 22, 'in'],
+      'D size sheet': [22, 34, 'in'],
+      'E size sheet': [34, 44, 'in'],
+      'ASMEFSheet': [28, 40, 'in'],
+      'Architecture A Sheet': [9, 12, 'in'],
+      'Architecture B Sheet': [12, 18, 'in'],
+      'Architecture C Sheet': [18, 24, 'in'],
+      'Architecture D Sheet': [24, 36, 'in'],
+      'Architecture E1 Sheet': [30, 42, 'in'],
+      'Architecture E Sheet': [36, 48, 'in']
+    },
+    'Photo & Business Card': {
+      'Japanese Postcard': [100, 148, 'mm'],
+      'Business Card 2x3.5': [2, 3.5, 'in'],
+      'Business Card 55x85mm': [55, 85, 'mm'],
+      'Business Card 55x91mm': [55, 91, 'mm'],
+      'Credit Card': [2.125, 3.375, 'in'],
+      'English 14x17': [14, 17, 'in'],
+      'English Photo L': [3.5, 5, 'in'],
+      'Metric Photo L': [89, 127, 'mm'],
+      'Photo 89x89mm': [89, 89, 'mm'],
+      'Photo 4x4': [4, 4, 'in'],
+      'Photo 5x5': [5, 5, 'in'],
+      'Photo 10x12': [10, 12, 'in'],
+      'North America 3x5': [3, 5, 'in'],
+      'North America 4x6': [4, 6, 'in'],
+      'North America 5x7': [5, 7, 'in'],
+      'North America 5x8': [5, 8, 'in'],
+      'North America 8x10': [8, 10, 'in'],
+      'North America Super B': [13, 19, 'in']
+    },
+    'Custom Sizes': {
+      '98x148mm': [98, 148, 'mm'],
+      '10x15in': [10, 15, 'in'],
+      '114x162mm': [114, 162, 'mm'],
+      '120x176mm': [120, 176, 'mm'],
+      '12x16in': [12, 16, 'in'],
+      '13x22in': [13, 22, 'in'],
+      '142x205mm': [142, 205, 'mm'],
+      '16x20in': [16, 20, 'in'],
+      '17x24in': [17, 24, 'in'],
+      '18x22in': [18, 22, 'in'],
+      '20x30in': [20, 30, 'in'],
+      '215x345mm': [215, 345, 'mm'],
+      '250x353mm': [250, 353, 'mm'],
+      '300x900mm': [300, 900, 'mm'],
+      '30x40in': [30, 40, 'in'],
+      '324x458mm': [324, 458, 'mm'],
+      '353x500mm': [353, 500, 'mm'],
+      '364x515mm': [364, 515, 'mm'],
+      '458x648mm': [458, 648, 'mm'],
+      '500x707mm': [500, 707, 'mm'],
+      '515x728mm': [515, 728, 'mm'],
+      '648x917mm': [648, 917, 'mm'],
+      '707x1000mm': [707, 1000, 'mm'],
+      '917x1297mm': [917, 1297, 'mm']
+    }
+  };
+
+  // Print resolution setting (informational - browsers control actual print
+  // DPI via the OS print dialog/driver, but this is stored for reference
+  // and used if image/PDF export is added later)
+  const PRINT_DPI = 1200;
+  document.documentElement.style.setProperty('--print-dpi', PRINT_DPI);
+
+  // Build flat lookup map: name -> "WunitH unit" css size string
+  const paperSizes = {};
+  Object.entries(paperSizeGroups).forEach(([groupName, sizes]) => {
+    const optgroup = document.createElement('optgroup');
+    optgroup.label = groupName;
+    Object.entries(sizes).forEach(([name, [w, h, unit]]) => {
+      paperSizes[name] = `${w}${unit} ${h}${unit}`;
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = name;
+      optgroup.appendChild(opt);
+    });
+    paperSize.appendChild(optgroup);
+  });
+  paperSize.value = 'Letter';
+
+  function applyPaperSize() {
+    const size = paperSizes[paperSize.value] || 'auto';
+    if (size === 'auto') {
+      pageSizeStyle.textContent = `@page { size: auto; margin: 14mm; }`;
+      return;
+    }
+    let [w, h] = size.split(' ');
+    if (orientation.value === 'landscape') {
+      [w, h] = [h, w];
+    }
+    pageSizeStyle.textContent = `@page { size: ${w} ${h}; margin: 14mm; }`;
+  }
+
+  // Theme toggle
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    themeBtn.textContent = theme === 'dark' ? 'Light mode' : 'Dark mode';
+  }
+
+  themeBtn.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    applyTheme(current);
+  });
+
+  printBtn.addEventListener('click', () => window.print());
+
+  // Initialize
+  const today = new Date();
+  monthSelect.value = today.getMonth();
+  yearInput.value = today.getFullYear();
+
+  monthSelect.addEventListener('change', renderCalendar);
+  yearInput.addEventListener('change', renderCalendar);
+  yearInput.addEventListener('input', renderCalendar);
+  paperSize.addEventListener('change', applyPaperSize);
+  orientation.addEventListener('change', applyPaperSize);
+
+  function applyWeekVisibility() {
+    const table = calendarBody.closest('table');
+    table.classList.toggle('hide-weeks', !showWeeks.checked);
+  }
+
+  showWeeks.addEventListener('change', applyWeekVisibility);
+
+  applyTheme('light');
+  applyPaperSize();
+  applyWeekVisibility();
+  renderCalendar();
+</script>
+</body>
+</html>
